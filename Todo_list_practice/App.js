@@ -1,6 +1,7 @@
+import { Fontisto } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity, 
-  TouchableHighlight, TouchableWithoutFeedback, Pressable, TextInput, ScrollView } from 'react-native';
+  TouchableHighlight, TouchableWithoutFeedback, Pressable, TextInput, ScrollView, Alert } from 'react-native';
 import {theme} from './colors';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -46,6 +47,20 @@ export default function App() {
     setText("");
   }
 
+  // 삭제 버튼에서 호출될 함수
+  const deleteTodo = (key) => {
+    Alert.alert("Delete To Do?", "Are you sure?", [
+      {text:"Cancel"},
+      {text:"I'm Sure", 
+        style: "destructive",
+        onPress: () => {
+        const newTodos = {...toDos}
+        delete newTodos[key]
+        setToDos(newTodos);
+        saveTodos(newTodos);
+      }}
+    ])
+  }
   // 출력 코드 부분
   return (
     <View style={styles.container}>
@@ -68,6 +83,7 @@ export default function App() {
           onChangeText={onChangeText}
           keyboardType='web-search'
           returnKeyType='done'
+          value={text}
           placeholder={working ? "Add a To do" : "Where do you want to go?"} style={styles.input}>
         </TextInput>
       </View>
@@ -76,6 +92,9 @@ export default function App() {
           toDos[key].working === working ? (
             <View style={styles.toDo} key={key}>
               <Text style={styles.toDoText}>{toDos[key].text}</Text>
+              <TouchableOpacity onPress={() => deleteTodo(key)}>
+                <Fontisto name="trash" size={24} color={theme.grey} />
+              </TouchableOpacity>
             </View> 
           ) : null
         ))}
@@ -113,6 +132,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 20,
     borderRadius: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   toDoText: {
     color: "white",

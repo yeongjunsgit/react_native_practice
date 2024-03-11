@@ -1046,17 +1046,130 @@ const icons = {
 - 이제 다시 접속할때 (새로고침)시에 Todo가 출력될 수 있게 저장된 값을 불러오자!
 
   ```react
-  // 
+  // 저장된 todos를 불러오는 loadTodos
   const loadToDos = async() => {
+      // s 변수에 AsyncStorage에 STRAGE_KEY를 key값으로 하는 문자열을 꺼내온다.
       const s = await AsyncStorage.getItem(STORAGE_KEY)
+      // s는 문자열이므로, 해당 데이터를 JSON형식으로 parse해줘야한다! 해당 값을 현재 todos 상태값으로 설정한다.
       setToDos(JSON.parse(s));
     }
+  // Vue3의 onMounted와 같은 useEffect를 통해 loasTodos를 실행하여 해당 페이지에 들어오자마자 값을 바꾼다!
     useEffect(() => {
       loadToDos();
     }, [])
   ```
-
-  - 집가서 마저 정리하라! 로드 부터 코드 정리해!
-
+  
 
 
+
+#### 6. Delete
+
+- 들어가기에 앞서 모든 핸드폰이 빠른것이 아니기 때문에 async await에서 error가 발생할 수 있다.
+- 따라서 로딩이 끝나지 않았을때, 로딩화면을 보여주고, try catch를 이용하여 async await를 사용하자! 이는 공식문서에 있음
+
+
+
+1. 삭제 버튼 만들기
+
+   - 각 Todo의 안에서 삭제 버튼을 추가한다. 여기선 아이콘을 써보겠다.
+
+     ```react
+     // 아이콘 사용하기전 import 필수!
+     import { Fontisto } from '@expo/vector-icons';
+     
+     	<ScrollView>{
+             Object.keys(toDos).map(key => (
+               toDos[key].working === working ? (
+                 <View style={styles.toDo} key={key}>
+                   <Text style={styles.toDoText}>{toDos[key].text}</Text>
+                   // 버튼을 터치했을 때, 삭제함수를 호출하기 위해 TouchableOpacity를 사용
+                   // 버튼을 누르면 deleteTodo 함수로 현재 게시글의 key값을 보냄
+                   <TouchableOpacity onPress={() => deleteTodo(key)}>
+                     // 쓰레기통 모양 아이콘을 가져와 사용
+                     <Fontisto name="trash" size={24} color={theme.grey} />
+                   </TouchableOpacity>
+                 </View> 
+               ) : null
+             ))}
+           </ScrollView>
+     ```
+
+2. 삭제 함수 구현
+
+   ```js
+     // 삭제 버튼에서 호출될 함수
+     // 해당 Todo의 key값을 인자로 받아옴
+     const deleteTodo = (key) => {
+       // 삭제하기전 알람을 띄워서 정말로 삭제할 것인지를 물어본다.
+       // Alert는 제공하는 API중 하나로 여러가지 기능을 가지고있다.
+       // alert()의 괄호안의 문자열 = 알람에서 나타날 내용 2번째는 작게 나옴 
+       Alert.alert("Delete To Do?", "Are you sure?", 
+       // alert에서 배열은 버튼을 뜻한다. 객체에 감싸서 버튼의 현황을 적어 사용하면 된다.
+       [
+         // 객체에서 가지는 값에 따라 버튼이 여러 기능을 가진다.
+         // text = 버튼 내용, onPress = 버튼을 눌렀을 때 기능들을 실행, style = IOS만 가능하며 버튼에 스타일을 달 수 있다.
+         {text:"Cancel"},
+         {text:"I'm Sure", 
+           style: "destructive",
+           onPress: () => {
+               // 삭제하겠습니다 버튼을 누르면 toDos를 복사
+               const newTodos = {...toDos}
+               // delete 기능을 이용해 인자로 받은 key값을 가진 데이터를 삭제
+               delete newTodos[key]
+               // 변경된 새로운 toDos를 현재 상태로 갱신하고 스토리지에 저장
+               setToDos(newTodos);
+               saveTodos(newTodos);
+         }}
+       ])
+     }
+   ```
+
+
+
+#### 7. 추가로 하면 좋은것들
+
+1.  종료하기 전 위치하고 있던 탭의 위치를 기억하여 다시 켰을때 그곳에서 시작
+2. todo list 완료 버튼 생성 완료되면 내용에 선그어주기
+3. todolist 내용 수정하기
+
+
+
+## Expo로 배포하기
+
+1. expo 웹사이트에 배포하기
+   1. 작성한 어플을 expo web으로 열기
+   2. 좌하단에 있는 publish or republish project 누르기
+   3. 작성해야할 것들 작성 하고 publish
+
+
+
+2. 웹사이트로 배포하면 이상하게 style들이 적용이 안되는 현상이 발생한다.
+
+   이를 inline으로 고치면 다시 잘 적용되는걸 볼 수 있다.
+
+   추가로 alert도 안된다고 한다.
+
+   - 이런 현상을 수정하기 위해서 사용하고 있는 각 API들을 공식문서에서 확인해보면 어느 플랫폼에서 지원하는지를 볼수 있다.
+
+   - Platform API를 이용하면 현재 이용하는 사람의 플랫폼이 어딘지 알 수 있다 이를 통해 각 플랫폼에 따라 다르게 대응할 수 있다.
+     - 이때 confirm을 사용한다니 한번 그렇게 사용할것이라면 찾아봐도 좋을듯 하다.
+
+   이후 수정한 코드를 다시 배포하기 위해선 publish or republish project 를 다시 누르면 된다.
+
+
+
+3. 실행시 나타나는 이미지를 수정하려면 assets에 있는 이미지를 수정하면된다. 
+   - 만약 시작시 나타나는 화면의 배경색을 바꾸고싶다면, app.json에서 바꿀 수 있다.
+
+
+
+### 앱 스토어를 위해 빌드하기
+
+- 안드로이드로  build 하기 위해
+
+  ```bash
+  expo build:android
+  ```
+
+  - 위 코드를 입력하면 여러개의 질문이 나오며 해당 질문을 대답하면 build를 시작하고 주소가 하나 나온다
+  - 해당 주소를 들어가면 Expo서버에서 JS코드를 통해 명령을 받아 build 해주는 것을 볼 수 있다.

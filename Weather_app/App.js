@@ -31,7 +31,7 @@ import { Ionicons } from '@expo/vector-icons'
 
 const {height, width: SCREEN_WIDTH} = Dimensions.get("window");
 
-const API_KEY = "cf0f79c21bcf87815b0634ed985e8c04"
+const API_KEY = "?"
 
 // 가져온 데이터의 날씨 명에 따라 맞는 아이콘의 이름을 연결한 데이터 만듬
 const icons = {
